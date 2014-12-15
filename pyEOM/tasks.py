@@ -142,8 +142,9 @@ class Ingestion(object):
             return self.processing['source'].ingest(self.format)
 
         elif "LANDSAT" == dataset[0]:
-            pass
-            #self.processing[dataset] = Landsat.Dataset(dataset)
+            from datasets import Landsat
+            self.processing['source'] = Landsat.GEE(task)
+            return self.processing['source'].run()
         elif "NOAA" == dataset[0]:
             pass
 

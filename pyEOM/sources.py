@@ -3,6 +3,7 @@ __author__ = 'Jonas Eberle <jonas.eberle@eberle-mail.de>'
 import pyEOM.gee_init as gee
 import ee
 import sys
+import ogr
 
 def TestGEESource():
     source = GEESource()
@@ -28,6 +29,16 @@ class GEESource(object):
         else:
             raise Exception('No valid user authentication found')
 
+    def processGeometry(self, wkt):
+        if 'POINT' in wkt:
+            geom = ogr.CreateGeometryFromWkt(wkt)
+            return self.getEEPoint(geom.GetX(), geom.GetY())
+        elif 'POLYGON' in wkt:
+            return self.getEEPolygon(wkt)
+        else:
+            raise Exception('Wrong geometry type (either POINT or POLYGON necessary)')
+            sys.exit(1)
+
     def getEEPoint(self, x, y):
         return ee.Geometry.Point(x, y)
 
@@ -45,22 +56,29 @@ class GEESource(object):
             if isinstance(bands, basisstring):
                 bands = [bands]
             collection = collection.select(bands)
+        if crsTransform == True:
+            image = collection.first().getInfo()
+            crsTransform = image['bands'][0]['crs_transform']
         try:
             data = collection.getRegion(eeGeometry, scale, epsg, crsTransform).getInfo()
         except Exception, e:
-            if e.message['code'] == 400 and "Too many values" in e.message['message']:
-                LOGGER.info('Too many pixels in polygon: '+e.message['message'])
-
-                msgAr = e.message['message'].split(' ')
-                points = int(msgAr[msgAr.index('points')-1])
-                bands = int(msgAr[msgAr.index('bands')-1])
-                images = int(msgAr[msgAr.index('images')-1])
-                limit = 1048576
-            else:
-                raise e
-                sys.exit(1)
+            raise e
+            #if e.message['code'] == 400 and "Too many values" in e.message['message']:
+            #    LOGGER.info('Too many pixels in polygon: '+e.message['message'])
+            #
+            #    msgAr = e.message['message'].split(' ')
+            #    points = int(msgAr[msgAr.index('points')-1])
+            #    bands = int(msgAr[msgAr.index('bands')-1])
+            #    images = int(msgAr[msgAr.index('images')-1])
+            #    limit = 1048576
+            #else:
+            #    raise e
+            #    sys.exit(1)
 
         return data
+
+    def reduceRegion(self):
+        pass
 
     def download(self, image, path):
         urls = []

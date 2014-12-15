@@ -317,6 +317,7 @@ class RasterProcessing(object):
 
 class GDAL(object):
     outputfilext = {'GTiff': '.tif', 'netCDF': '.nc', 'HDF4Image': '.hdf','VRT': '.vrt', 'KEA': '.kea', }
+    path = '' # with a training slash
 
     resample_methods = ['near', 'bilinear', 'cubic', 'cubicspline', 'lanczos']
 
@@ -346,7 +347,7 @@ class GDAL(object):
     def gdal_translate(self, input, output, format="GTiff"):
         #if not os.path.isfile(input):
         #    raise Exception('Input file not found!')
-        return self.execute(['gdal_translate', '-of', format, input, output], output)
+        return self.execute([self.path+'gdal_translate', '-of', format, input, output], output)
 
 
     def gdal_merge(self, inputfiles, output, format="GTiff", nodata=""):
@@ -355,7 +356,7 @@ class GDAL(object):
         #if len(inputfiles) <= 1:
         #    raise Exception('Inputfiles needs more than 1 file!')
 
-        return self.execute(['gdal_merge.py', '-o', output, '-of', format, inputfiles], output)
+        return self.execute([self.path+'gdal_merge.py', '-o', output, '-of', format, inputfiles], output)
 
 
     def gdalwarp(self, inputfile, output, format, dstnodata, epsg, resample, cutline):
@@ -378,14 +379,14 @@ class GDAL(object):
         else:
             format = ''
 
-        return self.execute(['gdalwarp', format, srcnodata, dstnodata, reproject, cutline, inputfile, output], output)
+        return self.execute([self.path+'gdalwarp', format, srcnodata, dstnodata, reproject, cutline, inputfile, output], output)
 
 
     def gdal_compress(self, inputfile, output, type):
-        return self.execute(['gdal_translate', '-co COMPRESS='+type, inputfile, output], output)
+        return self.execute([self.path+'gdal_translate', '-co COMPRESS='+type, inputfile, output], output)
 
     def gdallocationinfo(self, inputfile, x, y):
-        return self.execute(['gdallocationinfo', '-valonly', '-geoloc', '-wgs84', inputfile, str(x), str(y)], None)
+        return self.execute([self.path+'gdallocationinfo', '-valonly', '-geoloc', '-wgs84', inputfile, str(x), str(y)], None)
 
     def gdalbuildvrt(self, inputs, output, separate=True):
         inputfilelist = ''
@@ -397,4 +398,4 @@ class GDAL(object):
         else:
             separate = ''
 
-        return self.execute(['gdalbuildvrt', separate, inputfilelist, output, inputs], output)
+        return self.execute([self.path+'gdalbuildvrt', separate, inputfilelist, output, inputs], output)
