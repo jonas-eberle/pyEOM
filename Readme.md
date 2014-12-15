@@ -69,7 +69,7 @@ Further information to the datasets can be found at the following sites:
 * NASA LPDAAC: http://lpdaac.usgs.gov/products/modis_products_table
 * NSIDC DAAC: http://nsidc.org/data/modis/data_summaries/index.html
 
-Several MODIS and especially Landsat datasets are also available using Google Earth Engine. 
+Several MODIS and especially Landsat datasets are also available using Google Earth Engine.
 
 Google Earth Engine
 -------------------
@@ -79,6 +79,7 @@ If you have an account for the Google Earth Engine (https://earthengine.google.o
 Please set the variables MY_SERVICE_ACCOUNT and MY_PRIVATE_KEY_FILE in gee_init.py to your service account username and the private key file.
 
 *Examples:*
+
     from pyEOM.datasets import Landsat
     source = Landsat.GEE({'dataset': 'LANDSAT/LC8_L1T', 'geom': 'POINT(11 51)'})
     output = source.ingest()
