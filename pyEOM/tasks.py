@@ -5,6 +5,7 @@ from pyEOM.datasets import *
 from pyEOM import log
 import os
 import sys
+import importlib
 import ConfigParser
 
 LOGGER = log.LOGGER
@@ -102,11 +103,12 @@ class Ingestion(object):
         LOGGER.debug('Dataset: '+dataset[0])
         LOGGER.debug('Product: '+dataset[1])
         if "MODIS" == dataset[0]:
-            from datasets.predefined.MODIS import *
-            if dataset[1] not in locals():
-                raise Exception('Dataset Class is not available!')
+            try:
+                dataset = getattr(importlib.import_module('pyEOM.datasets.predefined.MODIS.'+dataset[1]), 'Dataset')
+            except Exception as e:
+                raise Exception('Dataset Class is not available: '+str(e))
                 sys.exit(1)
-            self.processing['dataset'] = locals()[dataset[1]].Dataset()
+            self.processing['dataset'] = dataset()
 
             if len(self.processing['dataset'].sources) == 0:
                 raise Exception('No sources available!')
@@ -127,7 +129,10 @@ class Ingestion(object):
             try:
                 LOGGER.debug('Try to get source class: '+source)
                 if source == 'LPDAAC' or source == 'NSIDC':
-                    self.processing['source'] = getattr(MODIS, 'MODISHDF')(self.task, self.processing['dataset'], source)
+                    sourceObj = getattr(MODIS, source)()
+                    if source == 'LPDAAC':
+                        sourceObj.setUserPwd(self.task['userPwd'])
+                    self.processing['source'] = getattr(MODIS, 'MODISHDF')(self.task, self.processing['dataset'], sourceObj)
                 else:
                     self.processing['source'] = getattr(MODIS, source)(self.task, self.processing['dataset'])
             except NameError, e:

@@ -28,6 +28,7 @@ Please make sure that the command-line tools are within the System path. Otherwi
 
 *Further requirements:*
 For MODIS HDF data processing, HDF4 image format has to be available for gdal command-line tools.
+Using the original data source for MODIS Land Products (LPDAAC), user login information from NASA Earthdata are required (see item 'userPwd' in task dictionary).
 
 Usage
 -----
@@ -43,7 +44,8 @@ Usage
         'format': 'HDF4Image',
         'EPSG': None,
         'resample': None,
-        'source': 'LPDAAC'
+        'source': 'LPDAAC',
+        'userPwd': 'username:password'
     })
     output = ingest.start()
 
@@ -66,7 +68,7 @@ Available datasets
 * MODIS Thermal Anomalies & Fire: MCD45A1
 
 Further information to the datasets can be found at the following sites:
-* NASA LPDAAC: http://lpdaac.usgs.gov/products/modis_products_table
+* NASA LPDAAC: https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table
 * NSIDC DAAC: http://nsidc.org/data/modis/data_summaries/index.html
 
 Several MODIS and especially Landsat datasets are also available using Google Earth Engine.
@@ -74,9 +76,12 @@ Several MODIS and especially Landsat datasets are also available using Google Ea
 Google Earth Engine
 -------------------
 
-If you have an account for the Google Earth Engine (https://earthengine.google.org), you can also use the Python bindings to have access to specific MODIS products and Landsat datasets.
+If you have an account for the Google Earth Engine (https://earthengine.google.org), you can also use the Python bindings to have access to specific MODIS products and Landsat datasets. To install the earthengine Python API see the following documentation:
+https://developers.google.com/earth-engine/python_install
+    pip install earthengine-api
 
-Please set the variables MY_SERVICE_ACCOUNT and MY_PRIVATE_KEY_FILE in gee_init.py to your service account username and the private key file.
+Please set the variables MY_SERVICE_ACCOUNT and MY_PRIVATE_KEY_FILE in gee_init.py to your service account username and the private key file. Therefore you need a service account that needs to be whitelisted first by the Google Earth Engine team. Please see the following documentation for more information:
+https://developers.google.com/earth-engine/service_account
 
 *Examples:*
 

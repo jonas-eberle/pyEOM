@@ -79,9 +79,26 @@ def TestDatasetLPDAAC():
     dataset.getProduct('MOD13Q1')
     dataset.source.download('', ['h12v08'])
 
+class LPDAACHTTPRedirectHandler(urllib2.HTTPRedirectHandler):
+    def http_error_302(self, req, fp, code, msg, headers):
+        return urllib2.HTTPRedirectHandler.http_error_302(self, req, fp, code, msg, headers)
 
 class LPDAAC(HTTPSource):
     url = 'http://e4ftl01.cr.usgs.gov'
+    userpwd = None
+    listDirectoriesIndex = 3
+
+    def setUserPwd(self, login):
+        self.userpwd = login
+        from base64 import b64encode
+        userAndPass = b64encode(str.encode(self.userpwd)).decode("ascii")
+        self.http_header = {'Authorization': 'Basic %s' % userAndPass}
+        cookieprocessor = urllib2.HTTPCookieProcessor()
+        opener = urllib2.build_opener(LPDAACHTTPRedirectHandler, cookieprocessor)
+        urllib2.install_opener(opener)
+
+    def __init__(self):
+        super(LPDAAC, self).__init__(self.url)
 
 
 class NSIDC(FTPSource):
@@ -119,7 +136,7 @@ class MODISHDF(object):
     def __init__(self, task, dataset, source):
         LOGGER.debug('LPDAAC init')
         self.dataset = dataset
-        self.source = locals()[source]()
+        self.source = source
         if 'start' in task != "":
             self.taskStart = datetime.strptime(task['start'], '%Y-%m-%d')
         if 'end' in task != "":

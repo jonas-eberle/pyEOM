@@ -1,7 +1,11 @@
 __author__ = 'Jonas Eberle <jonas.eberle@eberle-mail.de>'
 
 import pyEOM.gee_init as gee
-import ee
+try:
+    import ee
+    from ee import oauth
+except:
+    pass
 import sys
 import ogr
 
@@ -23,7 +27,10 @@ class GEESource(object):
 
     def connect(self, username=None, password=None):
         if gee.MY_SERVICE_ACCOUNT != '' and gee.MY_PRIVATE_KEY_FILE != '':
-            ee.Initialize(ee.ServiceAccountCredentials(gee.MY_SERVICE_ACCOUNT, gee.MY_PRIVATE_KEY_FILE))
+            #ee.ServiceAccountCredentials(gee.MY_SERVICE_ACCOUNT, gee.MY_PRIVATE_KEY_FILE)
+            from oauth2client.service_account import ServiceAccountCredentials
+            authorization = ServiceAccountCredentials.from_p12_keyfile(gee.MY_SERVICE_ACCOUNT, gee.MY_PRIVATE_KEY_FILE, scopes=oauth.SCOPE)
+            ee.Initialize(authorization)
         elif username != None and password != None:
             pass
         else:
@@ -111,7 +118,7 @@ class GEESource(object):
         return images
 
 
-import urllib
+import urllib, urllib2
 from bs4 import BeautifulSoup
 import re
 import os
@@ -136,6 +143,8 @@ class HTTPSource(object):
     directories = []
     filesObj = None
     files = []
+    listDirectoriesIndex = 1
+    http_header = {}
 
     def __init__(self, url):
         self.url = url
@@ -147,9 +156,9 @@ class HTTPSource(object):
         self.path = directory
         LOGGER.info('Retrieving url: '+self.url+directory)
         html = urllib.urlopen(self.url+directory).read()
-        self.directoryObj = BeautifulSoup(html)
+        self.directoryObj = BeautifulSoup(html, "lxml")
         directories = self.directoryObj.findAll(href=re.compile('/'))
-        directories = directories[1:]
+        directories = directories[self.listDirectoriesIndex:]
         for dir in directories:
             self.directories.append(dir.string[0:-1])
         return self.directories
@@ -157,7 +166,7 @@ class HTTPSource(object):
     def listFiles(self, directory):
         self.path = directory
         html = urllib.urlopen(self.url+directory).read()
-        self.filesObj = BeautifulSoup(html)
+        self.filesObj = BeautifulSoup(html, "lxml")
 
     def filterFiles(self, regexp, urls=True):
         self.files = self.filesObj.findAll(text=re.compile(regexp))
@@ -169,8 +178,13 @@ class HTTPSource(object):
         LOGGER.info('Download: '+url)
         filepath = path+'/'+url.split('/')[-1]
         if not os.path.isfile(filepath):
-            download = urllib.urlretrieve(url, filepath)
-            return download[0]
+            #download = urllib.urlretrieve(url, filepath)
+            filSave = open(filepath, "wb")
+            req = urllib2.Request(url, headers=self.http_header)
+            http = urllib2.urlopen(req)
+            filSave.write(http.read())
+            filSave.close()
+            return filepath
         else:
             return filepath
 
