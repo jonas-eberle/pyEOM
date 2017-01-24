@@ -189,6 +189,9 @@ class MODISHDF(object):
         return dict(tiles=self.task['tiles'], dates=self.dates)
 
     def process(self, files, format, epsg=None, resample=None, compress=False):
+        # clean files value within bands for new timestamp
+        for key, band in self.bands.items():
+            self.bands[key]['files'] = []
         #extract dataset
         LOGGER.info('extract bands')
         raster = processing.MODISHDFProcessor(None, self.bands, self.dataset.rastertype, self.publishPath)
