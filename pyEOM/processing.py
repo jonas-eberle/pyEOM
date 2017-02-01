@@ -67,7 +67,10 @@ class MODISHDFProcessor(object):
         for key, band in self.bands.items():
             dataset = 'HDF4_EOS:EOS_GRID:"'+self.file+'":"'+band['name']+'"'
             output = self.dirname+'/'+self.fileext[0]+'.'+key+self.fileext[1]
-            output = self.gdal.gdal_translate(dataset, output, 'HDF4Image')
+            if not os.path.exists(output):
+                output = self.gdal.gdal_translate(dataset, output, 'HDF4Image')
+            else:
+                LOGGER.info('File already exists: '+output)
             if isinstance(output, basestring):
                 if 'files' not in self.bands[key]: self.bands[key]['files'] = []
                 self.bands[key]['files'].append(output)
